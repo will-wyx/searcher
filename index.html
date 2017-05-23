@@ -5,44 +5,48 @@
     <title>Title</title>
     <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
     <style>
+        .list-group-item div {
+            display: inline-block;
+            width: 120px;
+            height: 120px;
+        }
+
         img {
-            max-height: 80px;
+            max-width: 120px;
+            max-height: 120px;
         }
     </style>
 </head>
 <body>
 <div class="container-fluid" style="padding-top: 22px">
     <div class="col-xs-4">
-        <div class="list-group">
-            <a href="javascript:;" data-id="D" class="list-group-item active">
-                <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
+        <div class="list-group" id="list_roots">
+            <!--<a href="javascript:;" data-href="/Users/will/Downloads" class="list-group-item active">-->
+            <a href="javascript:;" data-href="D:\\" class="list-group-item active">
+                <span class="glyphicon glyphicon-folder-close" aria-hidden="true"></span>
                 <span> D: </span>
             </a>
-            <a href="javascript:;" data-id="E" class="list-group-item">
+            <!--<a href="javascript:;" data-href="/Users/will/Documents" class="list-group-item">-->
+            <a href="javascript:;" data-href="E:\\" class="list-group-item">
                 <span class="glyphicon glyphicon-folder-close" aria-hidden="true"></span>
                 <span> E: </span>
             </a>
         </div>
     </div>
     <div class="col-xs-8">
-        <form action="javascript:;" class="form-horizontal">
+        <form action="javascript:;" class="form-horizontal" id="form_search">
             <div class="form-group">
                 <div class="input-group">
-                    <input type="text" class="form-control" id="input_search" placeholder="Search">
+                    <input type="text" class="form-control" id="input_key" placeholder="Search">
                     <span class="input-group-btn">
-                            <button class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
+                            <button class="btn btn-default" type="submit"><span
+                                    class="glyphicon glyphicon-search"></span></button>
                         </span>
                 </div>
             </div>
         </form>
         <div class="row">
-            <div class="list-group" id="list_files">
-                <!--<a href="javascript:;" class="list-group-item">-->
-                <!--<img src="C:\\Users\\WILL\\Pictures\\微信图片_20170428143120.jpg" alt="" class="img-rounded">-->
-                <!--微信图片_20170518093302.jpg-->
-                <!--</a>-->
-                <!--<a href="javascript:;" class="list-group-item" id="ImageContainer">微信图片_20170428143631.jpg</a>-->
-            </div>
+            <div class="list-group" id="list_files"></div>
         </div>
         <div id="image"></div>
     </div>
@@ -53,38 +57,67 @@
         require('bootstrap');
         const fileSearch = require('./filesearch');
         const EXEC = require('child_process').execFile;
-        let $list_files = $('#list_files');
-        $list_files.on('click', '.list-group-item', function () {
-            console.log(this);
-            let path = 'C:\\Windows\\System32\\calc.exe';
-//        let path = 'C:\\Windows\\System32\\rundll32.exe';
-//        let path = 'D:\\Program Files\\Adobe\\Adobe Photoshop CC 2014\\Photoshop.exe';
-            let filePath = 'C:\\Users\\WILL\\Pictures\\微信图片_20170428143120.jpg';
-            EXEC(path, [filePath], function (err, data) {
-                console.log(err, 'err');
-                console.log(data.toString(), 'data');
-            });
+        let $list_roots = $('#list_roots');
+        let dir = '';
+        let $active = $list_roots.find('.active');
+        dir = $active.data().href;
+        $list_roots.on('click', '.list-group-item', function () {
+            let $this = $(this);
+            let data = $this.data();
+            dir = data.href;
+            $this.addClass('active');
+            $this.siblings().removeClass('active');
         });
-        let dir = 'E:\\demo\\files';
-        fileSearch.search(dir, '', function (e) {
-            let $list_group_item = $('<a/>').addClass('list-group-item').attr('href', 'javascript:;');
-            $list_group_item.text(e.path);
-            if (e.type === 'file') {
-                switch (e.exname) {
-                    case '.bmp':
-                    case '.gif':
-                    case '.jpg':
-                    case '.jpeg':
-                    case '.png':
-                        let $img = $('<img/>').addClass('img-rounded').attr('src', e.path);
-                        $list_group_item.prepend($img);
-//                        $img.append($list_group_item);
-//                        $list_group_item.append($img);
-                        break;
-                }
-            } else {
+        let $list_files = $('#list_files');
+
+        const psPath = 'D:\\PS安装位置\\Adobe Photoshop CS6\\Photoshop.exe';
+        $list_files.on('click', '.list-group-item', function () {
+            let $this = $(this);
+            let {path, type} = $this.data();
+            switch (type) {
+                case 'img':
+                    EXEC(psPath, [path], function (err, data) {
+                        console.log(err, data);
+                    });
+                    break;
             }
-            $list_files.append($list_group_item);
+        });
+
+        let $form_search = $('#form_search');
+        let $input_key = $('#input_key');
+        $form_search.submit(function () {
+            let key = $input_key.val();
+            $list_files.empty();
+            fileSearch.search(dir, key, function (e) {
+                let $list_group_item = $('<a/>').addClass('list-group-item').attr('href', 'javascript:;');
+                $list_group_item.text(e.path);
+                let src = 'file.png';
+                let type = 'img';
+                if (e.type === 'file') {
+                    switch (e.exname) {
+                        case '.bmp':
+                        case '.gif':
+                        case '.jpg':
+                        case '.jpeg':
+                        case '.png':
+                            src = e.path;
+                            break;
+                        case '.psd':
+                            src = 'psd.png';
+                            break;
+                        default :
+                            type = 'file';
+                            break;
+                    }
+                } else {
+                    type = 'dir';
+                }
+                $list_group_item.data({path: e.path, type});
+                let $img = $('<div/>').append($('<img/>').addClass('img-rounded center-block').attr('src', src));
+                $list_group_item.prepend($img);
+                $list_files.append($list_group_item);
+                return false;
+            });
         });
     })();
 </script>

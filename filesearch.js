@@ -7,27 +7,15 @@
     function search(dir, key, callback) {
         if (fs.existsSync(dir)) {
             walk('root', dir, 0, function (name, path, level, type) {
-                let result = {name, path, type};
-                if (type === 'dir') {
-                } else {
-                    let index = name.lastIndexOf('.');
-                    let exname = name.substr(index);
-                    result.exname = exname;
+                if (name.indexOf(key) >= 0) {
+                    let result = {name, path, type};
+                    if (type === 'file') {
+                        let index = name.lastIndexOf('.');
+                        result.exname = name.substr(index);
+                    }
+                    callback(result);
                 }
-                callback(result);
             });
-
-            // fs.readdir(dir, function (err, files) {
-            //    if (err) {
-            //        console.error(err);
-            //        return false;
-            //    }
-            //    console.log(files);
-            //    // for(let item of files) {
-            //        // fs.readFile()
-            //        // console.log(item);
-            //    // }
-            // })
         } else {
             console.log('directory not fond');
         }
@@ -42,6 +30,7 @@
             } else {
                 files.forEach(function (item) {
                     let tmpPath = path + '\\' + item;
+                    // let tmpPath = path + '/' + item;
                     fs.stat(tmpPath, function (err1, stats) {
                         if (err1) {
                             console.log('stat error');
