@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <style>
+        img {
+            max-height: 80px;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid" style="padding-top: 22px">
+    <div class="col-xs-4">
+        <div class="list-group">
+            <a href="javascript:;" data-id="D" class="list-group-item active">
+                <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
+                <span> D: </span>
+            </a>
+            <a href="javascript:;" data-id="E" class="list-group-item">
+                <span class="glyphicon glyphicon-folder-close" aria-hidden="true"></span>
+                <span> E: </span>
+            </a>
+        </div>
+    </div>
+    <div class="col-xs-8">
+        <form action="javascript:;" class="form-horizontal">
+            <div class="form-group">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="input_search" placeholder="Search">
+                    <span class="input-group-btn">
+                            <button class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
+                        </span>
+                </div>
+            </div>
+        </form>
+        <div class="row">
+            <div class="list-group" id="list_files">
+                <!--<a href="javascript:;" class="list-group-item">-->
+                <!--<img src="C:\\Users\\WILL\\Pictures\\微信图片_20170428143120.jpg" alt="" class="img-rounded">-->
+                <!--微信图片_20170518093302.jpg-->
+                <!--</a>-->
+                <!--<a href="javascript:;" class="list-group-item" id="ImageContainer">微信图片_20170428143631.jpg</a>-->
+            </div>
+        </div>
+        <div id="image"></div>
+    </div>
+</div>
+<script>
+    (function () {
+        window.$ = window.jQuery = require('jquery');
+        require('bootstrap');
+        const fileSearch = require('./filesearch');
+        const EXEC = require('child_process').execFile;
+        let $list_files = $('#list_files');
+        $list_files.on('click', '.list-group-item', function () {
+            console.log(this);
+            let path = 'C:\\Windows\\System32\\calc.exe';
+//        let path = 'C:\\Windows\\System32\\rundll32.exe';
+//        let path = 'D:\\Program Files\\Adobe\\Adobe Photoshop CC 2014\\Photoshop.exe';
+            let filePath = 'C:\\Users\\WILL\\Pictures\\微信图片_20170428143120.jpg';
+            EXEC(path, [filePath], function (err, data) {
+                console.log(err, 'err');
+                console.log(data.toString(), 'data');
+            });
+        });
+        let dir = 'E:\\demo\\files';
+        fileSearch.search(dir, '', function (e) {
+            let $list_group_item = $('<a/>').addClass('list-group-item').attr('href', 'javascript:;');
+            $list_group_item.text(e.path);
+            if (e.type === 'file') {
+                switch (e.exname) {
+                    case '.bmp':
+                    case '.gif':
+                    case '.jpg':
+                    case '.jpeg':
+                    case '.png':
+                        let $img = $('<img/>').addClass('img-rounded').attr('src', e.path);
+                        $list_group_item.prepend($img);
+//                        $img.append($list_group_item);
+//                        $list_group_item.append($img);
+                        break;
+                }
+            } else {
+            }
+            $list_files.append($list_group_item);
+        });
+    })();
+</script>
+</body>
+</html>
